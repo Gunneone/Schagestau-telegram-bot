@@ -1,0 +1,27 @@
+services:
+  schagestau-bot:
+    build: .
+    container_name: schagestau-telegram-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Persist state files
+      - ./data:/app/data
+      # Mount prompts configuration
+      - ./prompts.yml:/app/prompts.yml:ro
+    environment:
+      # Override storage paths to use /app/data
+      - LAST_FETCH_FILE=/app/data/last_fetch.json
+      - LOG_FILE=/app/data/bot.log
+    networks:
+      - schagestau-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  schagestau-network:
+    driver: bridge

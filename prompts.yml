@@ -1,0 +1,45 @@
+# LLM Prompts Configuration
+# This file contains all prompts sent to OpenAI models
+
+# News Ranking Prompt
+ranking:
+  system: "Du bist ein erfahrener Nachrichtenredakteur."
+  user_template: |
+    Du bist ein Nachrichtenredakteur, der die Wichtigkeit deutscher Nachrichtenartikel bewertet.
+    Ranke die folgenden Artikel nach Wichtigkeit unter Berücksichtigung von:
+    1. Politische und gesellschaftliche Bedeutung
+    2. Auswirkungen auf das Leben der Menschen
+    3. Dringlichkeit und Aktualität
+    4. Geografischer und demografischer Umfang
+    
+    Gib ein JSON-Array mit den IDs der Top {news_count} Artikel in der Reihenfolge ihrer Wichtigkeit zurück.
+    Antworte NUR mit dem JSON-Array, keine zusätzlichen Erklärungen.
+    
+    Format: [id1, id2, id3]
+    
+    Artikel:
+    {articles_json}
+  max_completion_tokens: 2000
+
+# News Summarization Prompt
+summarization:
+  system: "Du bist ein Journalist, der prägnante Nachrichtenzusammenfassungen schreibt."
+  user_template: |
+    Fasse den folgenden deutschen Nachrichtenartikel in 2-3 kurzen Sätzen zusammen. Niemals mehr als 3 Sätze!
+    
+    WICHTIG: Halte die Sätze kurz und prägnant. Jeder Satz sollte maximal 15-20 Wörter haben.
+    Nutze kurze Hauptsätze. Vermeide lange, verschachtelte Nebensätze.
+    
+    Struktur:
+    - Satz 1: Die wichtigste Nachricht (Was? Wer?)
+    - Satz 2: Zusätzlicher Kontext oder Details
+    - Satz 3 (optional): Weitere relevante Information oder Auswirkung
+    
+    Beispiel für guten Stil:
+    "Ein neues UN-Abkommen soll den Grundstein für ein weltweites Ende der Plastikverschmutzung legen – ob das gelingt, ist unklar. Geplant ist eine internationale Konvention mit dem Ziel, das Plastikproblem langfristig in den Griff zu bekommen. Staaten mit Ölvorkommen befürchten wirtschaftliche Nachteile."
+    
+    Titel: {title}
+    
+    Artikel:
+    {content}
+  max_completion_tokens: 200
