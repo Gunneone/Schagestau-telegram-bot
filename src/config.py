@@ -14,6 +14,7 @@ class Config:
     # Telegram
     TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
     TELEGRAM_CHANNEL_ID = os.getenv('TELEGRAM_CHANNEL_ID')
+    ADMIN_USER_ID = os.getenv('ADMIN_USER_ID')  # Optional: Telegram user ID for admin notifications
     
     # Tagesschau API
     TAGESSCHAU_API_URL = os.getenv('TAGESSCHAU_API_URL', 'https://www.tagesschau.de/api2u/homepage/')

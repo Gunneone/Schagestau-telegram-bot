@@ -19,13 +19,14 @@ from src.command_handler import CommandListener
 logger = None
 
 
-def run_digest_cycle(force=False, dry_run=False):
+def run_digest_cycle(force=False, dry_run=False, triggered_by_cron=False):
     """
     Run a complete digest cycle
     
     Args:
         force: If True, ignore last fetch timestamp
         dry_run: If True, don't send to Telegram
+        triggered_by_cron: If True, send article overview to admin
     """
     logger.info("=" * 50)
     logger.info("Starting scheduled news fetch")
@@ -81,6 +82,16 @@ def run_digest_cycle(force=False, dry_run=False):
             
             if success:
                 logger.info("Successfully sent digest to Telegram")
+                
+                # Send overview to admin if triggered by cron
+                if triggered_by_cron:
+                    logger.info("Sending article overview to admin...")
+                    overview_success = publisher.send_admin_overview(articles, top_articles, current_time)
+                    if overview_success:
+                        logger.info("Successfully sent overview to admin")
+                    else:
+                        logger.warning("Failed to send overview to admin")
+                
                 # Update last fetch timestamp
                 Storage.save_last_fetch_time(current_time)
                 logger.info("Updated last fetch timestamp")
@@ -116,7 +127,7 @@ def schedule_jobs():
         utc_time = target_tz_time.astimezone(pytz.UTC)
         utc_time_str = utc_time.strftime('%H:%M')
         
-        schedule.every().day.at(utc_time_str).do(run_digest_cycle)
+        schedule.every().day.at(utc_time_str).do(run_digest_cycle, triggered_by_cron=True)
         logger.info(f"Scheduled job for {fetch_time} {Config.TIMEZONE} (runs at {utc_time_str} UTC)")
     
     # Start command listener in a separate thread
