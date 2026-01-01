@@ -5,6 +5,7 @@ from src.config import Config
 from src.utils import format_timestamp
 from datetime import datetime
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +53,9 @@ class TelegramPublisher:
         for idx, (article, summary) in enumerate(zip(articles, summaries)):
             url = article.get('shareURL') or article.get('detailsweb', '')
             
-            # Remove any internal line breaks from summary
-            summary = summary.replace('\n', ' ').strip()
+            # Remove any internal line breaks from summary and normalize spaces
+            summary = summary.replace('\n', ' ')
+            summary = re.sub(r'\s+', ' ', summary).strip()
             
             # Make first sentence bold
             sentences = summary.split('. ', 1)
