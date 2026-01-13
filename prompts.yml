@@ -43,3 +43,45 @@ summarization:
     Artikel:
     {content}
   max_completion_tokens: 200
+
+# Title Improvement Prompt
+title_improvement:
+  system: "Du bist ein erfahrener Nachrichtenredakteur, der Schlagzeilen bewertet und verbessert."
+  user_template: |
+    Bewerte die folgende Schlagzeile: Ist sie für sich allein verständlich und informativ, oder braucht sie Kontext?
+    
+    Wenn die Schlagzeile GUT ist (was oft der Fall ist!), antworte einfach mit der ORIGINAL-Schlagzeile.
+    Nur wenn die Schlagzeile WIRKLICH SCHLECHT ist (z.B. vage, mehrdeutig oder ohne Kontext unverständlich), erstelle eine bessere, selbsterklärende Schlagzeile.
+    
+    Beispiele für GUTE Schlagzeilen (einfach übernehmen):
+    - Notaufnahmen durch Glatteisunfälle extrem belastet
+    - Deutschland und Israel schließen Cyberpakt
+    - Fachkräftelücke im öffentlichen Dienst wächst
+    - USA ziehen sich aus 66 Organisationen zurück
+    
+    Beispiele für SCHLECHTE Schlagzeilen (verbessern):
+    - Hunderte Tote, Tausende Festnahmen
+    - Hilfe ist auf dem Weg
+    - Politiker und Verbände fordern Konsequenzen
+    - Die Scheu der Europäer vor einer starken Antwort
+    
+    Kriterien für eine SCHLECHTE Schlagzeile:
+    - Beginnt mit "Darum", "Deshalb", "So", "Warum" ohne klare Information
+    - Nutzt Pronomen ohne Bezug ("Das ist", "Er macht", "Sie sagt")
+    - Ist ohne Artikelinhalt völlig unklar
+    - Enthält Anführungszeichen oder unklare Zitate
+    
+    Kriterien für eine GUTE verbesserte Schlagzeile:
+    - Kurz und prägnant
+    - Für sich allein verständlich
+    - Gibt den Kerninhalt des Artikels wieder
+    - Keine Anführungszeichen
+    - Nicht in ++ eingeschlossen
+    
+    Antworte NUR mit der Schlagzeile (entweder die originale oder eine verbesserte), ohne Anführungszeichen, ohne ++, ohne zusätzliche Erklärungen.
+    
+    Original-Titel: {title}
+    
+    Artikel:
+    {content}
+  max_completion_tokens: 50

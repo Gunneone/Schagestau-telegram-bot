@@ -46,6 +46,16 @@ class PromptLoader:
         )
     
     @classmethod
+    def get_title_improvement_prompts(cls):
+        """Get title improvement system and user prompts and max tokens"""
+        prompts = cls.load_prompts()
+        return (
+            prompts['title_improvement']['system'],
+            prompts['title_improvement']['user_template'],
+            prompts['title_improvement'].get('max_completion_tokens', 50)
+        )
+    
+    @classmethod
     def reload_prompts(cls):
         """Force reload of prompts from file (useful for testing)"""
         cls._prompts = None

@@ -15,6 +15,55 @@ class NewsSummarizer:
         self.temperature = Config.OPENAI_TEMPERATURE
         self.max_tokens = Config.OPENAI_MAX_TOKENS
     
+    def _check_and_improve_title(self, article, content_text):
+        """
+        Check if title needs improvement and generate better one if needed.
+        Uses LLM to judge title quality and improve if necessary.
+        
+        Args:
+            article: Article dictionary
+            content_text: Full text content of the article
+            
+        Returns:
+            str: Original title or improved title
+        """
+        original_title = article.get('title', '')
+        
+        try:
+            system_prompt, user_template, max_tokens = PromptLoader.get_title_improvement_prompts()
+            
+            prompt = user_template.format(
+                title=original_title,
+                content=content_text
+            )
+            
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=self.temperature,
+                max_completion_tokens=max_tokens
+            )
+            
+            result_title = response.choices[0].message.content.strip()
+            # Remove quotes and ++ markers
+            result_title = result_title.strip('"\'').strip('+').strip()
+            
+            if result_title != original_title:
+                logger.info(f"✨ Improved title: '{original_title}' → '{result_title}'")
+                article['improved_title'] = result_title
+                return result_title
+            else:
+                logger.debug(f"✓ Title is good: '{original_title}'")
+                return original_title
+            
+        except Exception as e:
+            logger.error(f"Error checking/improving title: {e}")
+            logger.warning(f"Keeping original title: '{original_title}'")
+            return original_title
+    
     def summarize_article(self, article, content_text):
         """
         Generate a summary for a single article
@@ -27,7 +76,10 @@ class NewsSummarizer:
             str: Summary text (max 3 sentences)
         """
         try:
-            prompt = self._build_summary_prompt(article, content_text)
+            # Check and potentially improve title
+            title_to_use = self._check_and_improve_title(article, content_text)
+            
+            prompt = self._build_summary_prompt(title_to_use, content_text)
             
             logger.debug(f"Generating summary for: {article.get('title', 'Unknown')}")
             
@@ -79,18 +131,13 @@ class NewsSummarizer:
         logger.info(f"Generated {len(summaries)} summaries")
         return summaries
     
-    def _build_summary_prompt(self, article, content_text):
+    def _build_summary_prompt(self, title, content_text):
         """Build the summarization prompt in German"""
-        title = article.get('title', '')
-        
-        # Use content_text if available, otherwise use what we have
-        text = content_text or article.get('firstSentence', '') or article.get('topline', '')
-        
         _, user_template, _ = PromptLoader.get_summarization_prompts()
         
         prompt = user_template.format(
             title=title,
-            content=text
+            content=content_text
         )
         
         return prompt

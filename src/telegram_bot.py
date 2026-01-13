@@ -43,7 +43,8 @@ class TelegramPublisher:
         message = f"Guten {time_of_day}. Hier sind die News vom *{formatted_date}*. {emoji}\n\n"
         
         # Headlines separated by | (make them bold)
-        headlines = [f"*{article.get('title', 'Ohne Titel')}*" for article in articles]
+        # Use improved title if available, otherwise use original
+        headlines = [f"*{article.get('improved_title', article.get('title', 'Ohne Titel'))}*" for article in articles]
         message += ' | '.join(headlines) + "\n\n"
         
         # Separator
