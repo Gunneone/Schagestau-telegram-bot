@@ -93,6 +93,8 @@ title_improvement:
     - Nutzt Pronomen ohne Bezug ("Das ist", "Er macht", "Sie sagt")
     - Ist ohne Artikelinhalt völlig unklar
     - Enthält Anführungszeichen oder unklare Zitate
+    - Enthält mehr als 5 inhaltliche Wörter
+    - enthält Satzzeichen oder Nebensätze
     
     Kriterien für eine GUTE verbesserte Schlagzeile:
     - Kurz und prägnant
@@ -100,6 +102,7 @@ title_improvement:
     - Gibt den Kerninhalt des Artikels wieder
     - Keine Anführungszeichen
     - Nicht in ++ eingeschlossen
+    - Enthält HÖCHSTENS 5 inhaltliche Wörter (+ Präpositionen und Bindewörter)
     
     Antworte NUR mit der Schlagzeile (entweder die originale oder eine verbesserte), ohne Anführungszeichen, ohne ++, ohne zusätzliche Erklärungen.
     
@@ -107,4 +110,4 @@ title_improvement:
     
     Artikel:
     {content}
-  max_completion_tokens: 50
+  max_completion_tokens: 35
