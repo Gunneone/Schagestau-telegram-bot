@@ -25,6 +25,15 @@ def init_storage():
     else:
         print(f"✓ {Config.LAST_FETCH_FILE} already exists")
     
+    # Check if the carry-over article pool exists
+    if not os.path.exists(Config.ARTICLE_POOL_FILE):
+        print(f"Creating {Config.ARTICLE_POOL_FILE}...")
+        with open(Config.ARTICLE_POOL_FILE, 'w') as f:
+            json.dump({'pool': [], 'posted': {}}, f)
+        print(f"✓ Created {Config.ARTICLE_POOL_FILE}")
+    else:
+        print(f"✓ {Config.ARTICLE_POOL_FILE} already exists")
+    
     # Create log file if it doesn't exist
     if not os.path.exists(Config.LOG_FILE):
         print(f"Creating {Config.LOG_FILE}...")

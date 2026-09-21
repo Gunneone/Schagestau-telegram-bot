@@ -31,6 +31,21 @@ class Config:
     # News Selection
     NEWS_COUNT = int(os.getenv('NEWS_COUNT', '3'))
     MAX_SUMMARY_SENTENCES = int(os.getenv('MAX_SUMMARY_SENTENCES', '3'))
+    # Size of the ranked candidate pool the LLM returns before topic deduplication
+    RANKING_CANDIDATE_COUNT = int(os.getenv('RANKING_CANDIDATE_COUNT', '10'))
+    # Word overlap above which two articles count as the same story (1.0 disables)
+    TOPIC_SIMILARITY_THRESHOLD = float(os.getenv('TOPIC_SIMILARITY_THRESHOLD', '0.5'))
+
+    # Carry-over pool: articles seen in earlier runs but never posted
+    ARTICLE_POOL_FILE = os.getenv('ARTICLE_POOL_FILE', 'article_pool.json')
+    # Below this many fresh articles, top the pool up with carried-over ones
+    MIN_POOL_SIZE = int(os.getenv('MIN_POOL_SIZE', '6'))
+    # How long an unposted article stays eligible to be carried over
+    CARRYOVER_MAX_AGE_HOURS = int(os.getenv('CARRYOVER_MAX_AGE_HOURS', '24'))
+    # How long posted ids are remembered, so they cannot resurface as leftovers
+    POSTED_RETENTION_HOURS = int(os.getenv('POSTED_RETENTION_HOURS', '48'))
+    # Skip carried-over articles whose topic was already posted recently
+    SKIP_CARRYOVER_POSTED_TOPICS = os.getenv('SKIP_CARRYOVER_POSTED_TOPICS', 'true').lower() == 'true'
     
     @classmethod
     def validate(cls):
