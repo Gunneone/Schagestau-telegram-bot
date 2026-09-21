@@ -37,16 +37,38 @@ def run_digest_cycle(force=False, dry_run=False, triggered_by_cron=False):
         
         # Fetch news
         fetcher = NewsFetcher()
-        articles = fetcher.fetch_news(since=last_fetch)
+        fresh = fetcher.fetch_news(since=last_fetch)
         
+        logger.info(f"Fetched {len(fresh)} articles from Tagesschau API")
+        
+        # Extract content for each article
+        fresh_content = [fetcher.extract_article_content(article) for article in fresh]
+        
+        if not dry_run:
+            Storage.remember_articles(fresh, fresh_content)
+        
+        # On a quiet night the fresh window holds too few articles to choose
+        # from. Top the pool up with articles seen earlier but never posted.
+        articles, content_texts = fresh, fresh_content
+        if len(fresh) < Config.MIN_POOL_SIZE:
+            extra, extra_content = Storage.get_carryover_articles(
+                exclude_ids={a.get('sophoraId') for a in fresh},
+                exclude_topics=(Storage.get_recent_posted_topics()
+                                if Config.SKIP_CARRYOVER_POSTED_TOPICS else None),
+            )
+            if extra:
+                logger.info(
+                    f"Only {len(fresh)} fresh article(s) - adding "
+                    f"{len(extra)} carried over from earlier runs"
+                )
+                articles = fresh + extra
+                content_texts = fresh_content + extra_content
+        
+        # Checked after the top-up: zero fresh articles is exactly the case
+        # the carry-over pool exists to rescue.
         if not articles:
             logger.info("No new articles found")
             return
-        
-        logger.info(f"Fetched {len(articles)} articles from Tagesschau API")
-        
-        # Extract content for each article
-        content_texts = [fetcher.extract_article_content(article) for article in articles]
         
         # Rank articles
         ranker = NewsRanker()
@@ -55,6 +77,9 @@ def run_digest_cycle(force=False, dry_run=False, triggered_by_cron=False):
         if not top_articles:
             logger.warning("No articles selected after ranking")
             return
+        
+        if not dry_run:
+            Storage.remember_topics(ranker.last_topic_map)
         
         logger.info(f"Ranked articles, selected top {len(top_articles)}")
         
@@ -86,11 +111,16 @@ def run_digest_cycle(force=False, dry_run=False, triggered_by_cron=False):
                 # Send overview to admin if triggered by cron
                 if triggered_by_cron:
                     logger.info("Sending article overview to admin...")
-                    overview_success = publisher.send_admin_overview(articles, top_articles, current_time)
+                    overview_success = publisher.send_admin_overview(
+                        articles, top_articles, current_time, ranker.last_topic_map
+                    )
                     if overview_success:
                         logger.info("Successfully sent overview to admin")
                     else:
                         logger.warning("Failed to send overview to admin")
+                
+                # Record what went out so it cannot resurface as a leftover
+                Storage.mark_posted(top_articles)
                 
                 # Update last fetch timestamp
                 Storage.save_last_fetch_time(current_time)

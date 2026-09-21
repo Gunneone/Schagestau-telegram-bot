@@ -13,6 +13,7 @@ services:
     environment:
       # Override storage paths to use /app/data
       - LAST_FETCH_FILE=/app/data/last_fetch.json
+      - ARTICLE_POOL_FILE=/app/data/article_pool.json
       - LOG_FILE=/app/data/bot.log
     networks:
       - schagestau-network

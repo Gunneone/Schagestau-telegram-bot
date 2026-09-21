@@ -117,7 +117,8 @@ class TelegramPublisher:
         
         return False
     
-    async def send_admin_overview_async(self, all_articles, top_articles, timestamp):
+    async def send_admin_overview_async(self, all_articles, top_articles, timestamp,
+                                        topic_map=None):
         """
         Send article overview to admin user
         
@@ -125,6 +126,8 @@ class TelegramPublisher:
             all_articles: List of all article dictionaries in timeframe
             top_articles: List of top ranked article dictionaries
             timestamp: datetime of digest creation
+            topic_map: Optional {sophoraId: {'topic': slug, 'status': ...}} from
+                       the ranker, used to show topics and duplicates
             
         Returns:
             bool: True if successful, False otherwise
@@ -156,7 +159,12 @@ class TelegramPublisher:
         message = f"📊 *Artikel-Übersicht {time_of_day} ({formatted_date})*\n\n"
         message += f"⏰ Zeitfilter: {time_filter_start} - {formatted_time}\n"
         message += f"📰 Insgesamt {len(all_articles)} Artikel gefunden\n"
-        message += f"✅ Top {len(top_articles)} ausgewählt für den Digest\n\n"
+        message += f"✅ Top {len(top_articles)} ausgewählt für den Digest\n"
+        if topic_map:
+            message += "🔁 = gleiches Thema wie ein bereits gewählter Artikel\n"
+        if any(a.get('carried_over') for a in all_articles):
+            message += "♻️ = Übertrag aus einem früheren Lauf\n"
+        message += "\n"
         
         # List all articles with time and URL
         message += "━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -177,10 +185,20 @@ class TelegramPublisher:
             except:
                 time_str = "??"
             
-            # Mark selected articles with ✅
-            marker = "✅" if article_id in top_article_ids else "  "
+            # Mark selected articles with ✅, topic duplicates with 🔁
+            topic_info = (topic_map or {}).get(article_id) or {}
+            if article_id in top_article_ids:
+                marker = "✅"
+            elif topic_info.get('status') == 'dropped':
+                marker = "🔁"
+            else:
+                marker = "  "
             
-            message += f"{marker} `{time_str}` {title}\n"
+            carried = " ♻️" if article.get('carried_over') else ""
+            
+            message += f"{marker} `{time_str}` {title}{carried}\n"
+            if topic_info.get('topic'):
+                message += f"   _{topic_info['topic']}_\n"
             if url:
                 message += f"   {url}\n"
             message += "\n"
@@ -203,7 +221,8 @@ class TelegramPublisher:
             logger.error(f"Unexpected error sending admin overview: {e}")
             return False
     
-    def send_admin_overview(self, all_articles, top_articles, timestamp=None):
+    def send_admin_overview(self, all_articles, top_articles, timestamp=None,
+                            topic_map=None):
         """
         Send article overview to admin (sync wrapper)
         
@@ -211,6 +230,7 @@ class TelegramPublisher:
             all_articles: List of all article dictionaries in timeframe
             top_articles: List of top ranked article dictionaries
             timestamp: datetime of digest creation
+            topic_map: Optional topic/status map from the ranker
             
         Returns:
             bool: True if successful, False otherwise
@@ -218,7 +238,9 @@ class TelegramPublisher:
         if timestamp is None:
             timestamp = datetime.now()
         
-        return asyncio.run(self.send_admin_overview_async(all_articles, top_articles, timestamp))
+        return asyncio.run(self.send_admin_overview_async(
+            all_articles, top_articles, timestamp, topic_map
+        ))
     
     def send_digest(self, articles, summaries, timestamp=None):
         """

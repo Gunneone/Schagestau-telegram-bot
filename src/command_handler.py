@@ -10,6 +10,7 @@ from src.fetcher import NewsFetcher
 from src.ranker import NewsRanker
 from src.summarizer import NewsSummarizer
 from src.telegram_bot import TelegramPublisher
+from src.storage import Storage
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +158,10 @@ class CommandListener:
             
             if success:
                 logger.info("Successfully sent manual digest to channel")
+                # /fire deliberately leaves last_fetch alone, but must record
+                # what it posted - otherwise these articles come back later as
+                # unposted leftovers and go out a second time.
+                Storage.mark_posted(top_articles)
                 await update.message.reply_text(
                     "✅ Nachrichten-Digest erfolgreich gesendet!"
                 )

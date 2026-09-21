@@ -11,12 +11,35 @@ ranking:
     2. Auswirkungen auf das Leben der Menschen
     3. Dringlichkeit und Aktualität
     4. Geografischer und demografischer Umfang
-    
-    Gib ein JSON-Array mit den IDs der Top {news_count} Artikel in der Reihenfolge ihrer Wichtigkeit zurück.
+
+    THEMEN-ZUORDNUNG (sehr wichtig):
+    Ordne jedem Artikel ein "topic" zu - einen kurzen Slug in Kleinbuchstaben
+    (nur a-z, 0-9 und Bindestriche), der das konkrete Ereignis benennt,
+    z.B. "bundestagswahl", "ukraine-krieg", "tarifstreit-bahn".
+    Artikel, die dasselbe Ereignis oder denselben Vorgang behandeln
+    (z.B. mehrere Artikel zur selben Wahl, zum selben Prozess, zum selben Unglück),
+    MÜSSEN exakt denselben topic-Slug bekommen - auch wenn sie
+    unterschiedliche Aspekte beleuchten. Verschiedene Ereignisse bekommen
+    verschiedene Slugs.
+
+    Nutze den kürzest möglichen, allgemeinen Slug für ein Ereignis
+    (also "bundestagswahl", NICHT "bundestagswahl-2026-ergebnis"), damit
+    zwei Artikel zum selben Ereignis garantiert denselben Slug erhalten.
+    Prüfe vor jedem neuen Slug, ob einer deiner bereits vergebenen Slugs
+    dasselbe Ereignis meint - dann nimm diesen.
+
+    AUSWAHL:
+    Gib ein JSON-Array mit den besten {candidate_count} Artikeln zurück,
+    sortiert nach Wichtigkeit (wichtigster zuerst).
+    Die Auswahl soll MÖGLICHST VIELE VERSCHIEDENE Ereignisse abdecken.
+    Wenn mehrere Artikel dasselbe Ereignis behandeln, setze den
+    informativsten und vollständigsten davon nach vorne - die übrigen
+    Artikel zu diesem Ereignis kommen weiter hinten.
+    Jedes Element hat die Form {{"id": <id>, "topic": "<slug>"}}.
     Antworte NUR mit dem JSON-Array, keine zusätzlichen Erklärungen.
-    
-    Format: [id1, id2, id3]
-    
+
+    Format: [{{"id": 12, "topic": "bundestagswahl"}}, {{"id": 3, "topic": "ukraine-krieg"}}]
+
     Artikel:
     {articles_json}
   max_completion_tokens: 2000
