@@ -145,20 +145,13 @@ def run_digest_cycle(force=False, dry_run=False, triggered_by_cron=False):
 
 def schedule_jobs():
     """Schedule the digest jobs and start command listener"""
-    tz = pytz.timezone(Config.TIMEZONE)
-    
     for fetch_time in Config.FETCH_TIMES:
         fetch_time = fetch_time.strip()
-        # Convert configured time from target timezone to UTC (system time)
         hour, minute = map(int, fetch_time.split(':'))
-        # Create a datetime in the target timezone for today
-        target_tz_time = datetime.now(tz).replace(hour=hour, minute=minute, second=0, microsecond=0)
-        # Convert to UTC
-        utc_time = target_tz_time.astimezone(pytz.UTC)
-        utc_time_str = utc_time.strftime('%H:%M')
-        
-        schedule.every().day.at(utc_time_str).do(run_digest_cycle, triggered_by_cron=True)
-        logger.info(f"Scheduled job for {fetch_time} {Config.TIMEZONE} (runs at {utc_time_str} UTC)")
+        # schedule recomputes the next run in the target timezone after every run,
+        # so the job follows daylight saving changes without a restart
+        schedule.every().day.at(f"{hour:02d}:{minute:02d}", Config.TIMEZONE).do(run_digest_cycle, triggered_by_cron=True)
+        logger.info(f"Scheduled job for {fetch_time} {Config.TIMEZONE}")
     
     # Start command listener in a separate thread
     logger.info("Starting command listener in background...")
